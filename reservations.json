@@ -1,0 +1,511 @@
+{
+  "machines": [
+    {
+      "category": "Intel GPUs",
+      "name": "sc09rvp02-b60",
+      "cards": [
+        {
+          "id": 0,
+          "name": "Card0",
+          "reserved_by": "robin"
+        },
+        {
+          "id": 1,
+          "name": "Card1",
+          "reserved_by": null
+        },
+        {
+          "id": 2,
+          "name": "Card2",
+          "reserved_by": null
+        },
+        {
+          "id": 3,
+          "name": "Card3",
+          "reserved_by": null
+        },
+        {
+          "id": 4,
+          "name": "Card4",
+          "reserved_by": null
+        },
+        {
+          "id": 5,
+          "name": "Card5",
+          "reserved_by": null
+        },
+        {
+          "id": 6,
+          "name": "Card6",
+          "reserved_by": null
+        },
+        {
+          "id": 7,
+          "name": "Card7",
+          "reserved_by": null
+        }
+      ]
+    },
+    {
+      "category": "Intel GPUs",
+      "name": "sc09rvp03-b60",
+      "cards": [
+        {
+          "id": 0,
+          "name": "Card0",
+          "reserved_by": null
+        },
+        {
+          "id": 1,
+          "name": "Card1",
+          "reserved_by": null
+        },
+        {
+          "id": 2,
+          "name": "Card2",
+          "reserved_by": null
+        },
+        {
+          "id": 3,
+          "name": "Card3",
+          "reserved_by": null
+        },
+        {
+          "id": 4,
+          "name": "Card4",
+          "reserved_by": null
+        },
+        {
+          "id": 5,
+          "name": "Card5",
+          "reserved_by": null
+        },
+        {
+          "id": 6,
+          "name": "Card6",
+          "reserved_by": null
+        },
+        {
+          "id": 7,
+          "name": "Card7",
+          "reserved_by": null
+        }
+      ]
+    },
+    {
+      "category": "Intel GPUs",
+      "name": "sc09intel02-b60",
+      "cards": [
+        {
+          "id": 0,
+          "name": "Card0",
+          "reserved_by": "TLB"
+        },
+        {
+          "id": 1,
+          "name": "Card1",
+          "reserved_by": "TLB"
+        },
+        {
+          "id": 2,
+          "name": "Card2",
+          "reserved_by": "TLB"
+        },
+        {
+          "id": 3,
+          "name": "Card3",
+          "reserved_by": null
+        },
+        {
+          "id": 4,
+          "name": "Card4",
+          "reserved_by": null
+        },
+        {
+          "id": 5,
+          "name": "Card5",
+          "reserved_by": null
+        },
+        {
+          "id": 6,
+          "name": "Card6",
+          "reserved_by": null
+        },
+        {
+          "id": 7,
+          "name": "Card7",
+          "reserved_by": null
+        }
+      ]
+    },
+    {
+      "category": "Intel GPUs",
+      "name": "sc09giga01-70",
+      "cards": [
+        {
+          "id": 0,
+          "name": "Card0",
+          "reserved_by": "zhm"
+        },
+        {
+          "id": 1,
+          "name": "Card1",
+          "reserved_by": "zhm"
+        },
+        {
+          "id": 2,
+          "name": "Card2",
+          "reserved_by": "zhm"
+        },
+        {
+          "id": 3,
+          "name": "Card3",
+          "reserved_by": "zhm"
+        },
+        {
+          "id": 4,
+          "name": "Card4",
+          "reserved_by": null
+        },
+        {
+          "id": 5,
+          "name": "Card5",
+          "reserved_by": null
+        },
+        {
+          "id": 6,
+          "name": "Card6",
+          "reserved_by": null
+        },
+        {
+          "id": 7,
+          "name": "Card7",
+          "reserved_by": null
+        }
+      ]
+    },
+    {
+      "category": "Intel GPUs",
+      "name": "sc09intel03-b70",
+      "cards": [
+        {
+          "id": 0,
+          "name": "Card0",
+          "reserved_by": null
+        },
+        {
+          "id": 1,
+          "name": "Card1",
+          "reserved_by": null
+        },
+        {
+          "id": 2,
+          "name": "Card2",
+          "reserved_by": null
+        },
+        {
+          "id": 3,
+          "name": "Card3",
+          "reserved_by": null
+        },
+        {
+          "id": 4,
+          "name": "Card4",
+          "reserved_by": null
+        },
+        {
+          "id": 5,
+          "name": "Card5",
+          "reserved_by": null
+        },
+        {
+          "id": 6,
+          "name": "Card6",
+          "reserved_by": null
+        },
+        {
+          "id": 7,
+          "name": "Card7",
+          "reserved_by": null
+        }
+      ]
+    },
+    {
+      "category": "Intel GPUs",
+      "name": "sc09intel04-b70",
+      "cards": [
+        {
+          "id": 0,
+          "name": "Card0",
+          "reserved_by": null
+        },
+        {
+          "id": 1,
+          "name": "Card1",
+          "reserved_by": null
+        },
+        {
+          "id": 2,
+          "name": "Card2",
+          "reserved_by": null
+        },
+        {
+          "id": 3,
+          "name": "Card3",
+          "reserved_by": null
+        },
+        {
+          "id": 4,
+          "name": "Card4",
+          "reserved_by": null
+        },
+        {
+          "id": 5,
+          "name": "Card5",
+          "reserved_by": null
+        },
+        {
+          "id": 6,
+          "name": "Card6",
+          "reserved_by": null
+        },
+        {
+          "id": 7,
+          "name": "Card7",
+          "reserved_by": null
+        }
+      ]
+    },
+    {
+      "category": "Intel GPUs",
+      "name": "sc09intel05-b70",
+      "cards": [
+        {
+          "id": 0,
+          "name": "Card0",
+          "reserved_by": null
+        },
+        {
+          "id": 1,
+          "name": "Card1",
+          "reserved_by": null
+        },
+        {
+          "id": 2,
+          "name": "Card2",
+          "reserved_by": null
+        },
+        {
+          "id": 3,
+          "name": "Card3",
+          "reserved_by": null
+        },
+        {
+          "id": 4,
+          "name": "Card4",
+          "reserved_by": null
+        },
+        {
+          "id": 5,
+          "name": "Card5",
+          "reserved_by": null
+        },
+        {
+          "id": 6,
+          "name": "Card6",
+          "reserved_by": null
+        },
+        {
+          "id": 7,
+          "name": "Card7",
+          "reserved_by": null
+        }
+      ]
+    },
+    {
+      "category": "Nvidia GPUs",
+      "name": "sc09super16-nvd",
+      "cards": [
+        {
+          "id": 0,
+          "name": "Card0",
+          "reserved_by": null
+        },
+        {
+          "id": 1,
+          "name": "Card1",
+          "reserved_by": null
+        },
+        {
+          "id": 2,
+          "name": "Card2",
+          "reserved_by": null
+        },
+        {
+          "id": 3,
+          "name": "Card3",
+          "reserved_by": null
+        },
+        {
+          "id": 4,
+          "name": "Card4",
+          "reserved_by": null
+        },
+        {
+          "id": 5,
+          "name": "Card5",
+          "reserved_by": null
+        },
+        {
+          "id": 6,
+          "name": "Card6",
+          "reserved_by": null
+        },
+        {
+          "id": 7,
+          "name": "Card7",
+          "reserved_by": null
+        }
+      ]
+    },
+    {
+      "category": "Nvidia GPUs",
+      "name": "sc09dell06-nvd",
+      "cards": [
+        {
+          "id": 0,
+          "name": "Card0",
+          "reserved_by": null
+        },
+        {
+          "id": 1,
+          "name": "Card1",
+          "reserved_by": null
+        },
+        {
+          "id": 2,
+          "name": "Card2",
+          "reserved_by": null
+        },
+        {
+          "id": 3,
+          "name": "Card3",
+          "reserved_by": null
+        },
+        {
+          "id": 4,
+          "name": "Card4",
+          "reserved_by": null
+        },
+        {
+          "id": 5,
+          "name": "Card5",
+          "reserved_by": null
+        },
+        {
+          "id": 6,
+          "name": "Card6",
+          "reserved_by": null
+        },
+        {
+          "id": 7,
+          "name": "Card7",
+          "reserved_by": null
+        }
+      ]
+    },
+    {
+      "category": "Nvidia GPUs",
+      "name": "sc09super21-h200",
+      "cards": [
+        {
+          "id": 0,
+          "name": "Card0",
+          "reserved_by": "zhm"
+        },
+        {
+          "id": 1,
+          "name": "Card1",
+          "reserved_by": "zhm"
+        },
+        {
+          "id": 2,
+          "name": "Card2",
+          "reserved_by": null
+        },
+        {
+          "id": 3,
+          "name": "Card3",
+          "reserved_by": null
+        },
+        {
+          "id": 4,
+          "name": "Card4",
+          "reserved_by": "Igor"
+        },
+        {
+          "id": 5,
+          "name": "Card5",
+          "reserved_by": "Igor"
+        },
+        {
+          "id": 6,
+          "name": "Card6",
+          "reserved_by": "Igor"
+        },
+        {
+          "id": 7,
+          "name": "Card7",
+          "reserved_by": null
+        }
+      ]
+    },
+    {
+      "category": "Nvidia GPUs",
+      "name": "sc09super22-b200",
+      "cards": [
+        {
+          "id": 0,
+          "name": "Card0",
+          "reserved_by": null
+        },
+        {
+          "id": 1,
+          "name": "Card1",
+          "reserved_by": null
+        },
+        {
+          "id": 2,
+          "name": "Card2",
+          "reserved_by": null
+        },
+        {
+          "id": 3,
+          "name": "Card3",
+          "reserved_by": null
+        },
+        {
+          "id": 4,
+          "name": "Card4",
+          "reserved_by": null
+        },
+        {
+          "id": 5,
+          "name": "Card5",
+          "reserved_by": null
+        },
+        {
+          "id": 6,
+          "name": "Card6",
+          "reserved_by": null
+        },
+        {
+          "id": 7,
+          "name": "Card7",
+          "reserved_by": null
+        }
+      ]
+    }
+  ],
+  "last_updated": "2026-06-02T18:07:42.090371"
+}
