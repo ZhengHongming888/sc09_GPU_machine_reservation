@@ -62,13 +62,15 @@ async function loadFromFirebase() {
         for (const doc of snapshot.docs) {
             const machineData = doc.data();
 
-            // Load cards for this machine
+            // Load cards for this machine - simplified query to avoid index
             const cardsSnapshot = await db.collection('cards')
                 .where('machine_id', '==', doc.id)
-                .orderBy('card_number')
                 .get();
 
-            const cards = cardsSnapshot.docs.map(cardDoc => cardDoc.data());
+            // Sort cards in memory instead of in query
+            const cards = cardsSnapshot.docs
+                .map(cardDoc => cardDoc.data())
+                .sort((a, b) => a.card_number - b.card_number);
 
             machines.push({
                 category: machineData.category,
