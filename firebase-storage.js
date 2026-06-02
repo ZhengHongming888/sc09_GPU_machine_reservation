@@ -69,8 +69,15 @@ async function loadFromFirebase() {
 
             // Sort cards in memory instead of in query
             const cards = cardsSnapshot.docs
-                .map(cardDoc => cardDoc.data())
-                .sort((a, b) => a.card_number - b.card_number);
+                .map(cardDoc => {
+                    const data = cardDoc.data();
+                    return {
+                        id: data.card_number,
+                        name: data.card_name,
+                        reserved_by: data.reserved_by
+                    };
+                })
+                .sort((a, b) => a.id - b.id);
 
             machines.push({
                 category: machineData.category,
@@ -250,9 +257,9 @@ async function migrateToFirebase(reservationsData, auditLog) {
                 await db.collection('cards').add({
                     machine_id: machineRef.id,
                     machine_name: machine.name,
-                    card_number: card.id,
-                    card_name: card.name,
-                    reserved_by: card.reserved_by,
+                    card_number: card.id !== undefined ? card.id : card.card_number,
+                    card_name: card.name || card.card_name || `Card${card.id || card.card_number}`,
+                    reserved_by: card.reserved_by || null,
                     reserved_at: card.reserved_by ? new Date() : null
                 });
             }
