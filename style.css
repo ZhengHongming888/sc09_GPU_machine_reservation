@@ -12,7 +12,7 @@ body {
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     background: white;
     border-radius: 12px;
@@ -31,7 +31,7 @@ header {
 
 h1 {
     color: #333;
-    font-size: 2rem;
+    font-size: 1.75rem;
 }
 
 .controls {
@@ -40,11 +40,11 @@ h1 {
 }
 
 .btn {
-    padding: 10px 20px;
+    padding: 10px 18px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     transition: all 0.3s ease;
 }
@@ -79,9 +79,9 @@ h1 {
     justify-content: space-between;
     align-items: center;
     background: #f7fafc;
-    padding: 15px 20px;
+    padding: 12px 20px;
     border-radius: 8px;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .info-item {
@@ -92,6 +92,7 @@ h1 {
 .label {
     font-weight: 600;
     color: #4a5568;
+    font-size: 15px;
 }
 
 .legend {
@@ -103,7 +104,7 @@ h1 {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
+    font-size: 15px;
     color: #4a5568;
 }
 
@@ -125,21 +126,21 @@ h1 {
 .reservation-grid {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 20px;
 }
 
 .category-section {
     border: 2px solid #e2e8f0;
     border-radius: 8px;
-    padding: 20px;
+    padding: 16px;
     background: #f7fafc;
 }
 
 .category-title {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #2d3748;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -165,21 +166,21 @@ h1 {
 .machine-list {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 .machine-row {
     display: grid;
-    grid-template-columns: 200px repeat(8, 1fr);
-    gap: 8px;
+    grid-template-columns: 180px repeat(8, 1fr);
+    gap: 6px;
     align-items: center;
 }
 
 .machine-name {
     font-weight: 600;
     color: #2d3748;
-    font-size: 14px;
-    padding: 10px;
+    font-size: 15px;
+    padding: 8px 10px;
     background: white;
     border-radius: 6px;
     border: 2px solid #cbd5e0;
@@ -196,8 +197,8 @@ h1 {
     cursor: pointer;
     transition: all 0.2s ease;
     background: white;
-    padding: 8px;
-    min-height: 70px;
+    padding: 6px;
+    min-height: 60px;
 }
 
 .card-cell:hover {
@@ -226,14 +227,14 @@ h1 {
 }
 
 .card-label {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     opacity: 0.8;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
 }
 
 .card-owner {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     text-align: center;
     word-break: break-word;
@@ -245,10 +246,10 @@ h1 {
 }
 
 footer {
-    margin-top: 30px;
+    margin-top: 25px;
     text-align: center;
     color: #718096;
-    font-size: 14px;
+    font-size: 15px;
     padding-top: 20px;
     border-top: 2px solid #e2e8f0;
 }
@@ -256,27 +257,28 @@ footer {
 /* Responsive design */
 @media (max-width: 1200px) {
     .machine-row {
-        grid-template-columns: 180px repeat(8, 1fr);
+        grid-template-columns: 160px repeat(8, 1fr);
+        gap: 5px;
     }
 }
 
 @media (max-width: 992px) {
     .machine-row {
-        grid-template-columns: 150px repeat(8, 1fr);
-        gap: 6px;
+        grid-template-columns: 140px repeat(8, 1fr);
+        gap: 5px;
     }
 
     .card-cell {
-        min-height: 60px;
-        padding: 6px;
+        min-height: 55px;
+        padding: 5px;
     }
 
     .card-label {
-        font-size: 10px;
+        font-size: 11px;
     }
 
     .card-owner {
-        font-size: 11px;
+        font-size: 12px;
     }
 }
 
