@@ -23,48 +23,75 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Initialize application
 async function initializeApp() {
+    console.log('🚀 Initializing app...');
+
     // Try to initialize Firebase first
     if (typeof initializeFirebase === 'function') {
         firebaseInitialized = await initializeFirebase();
+        console.log('Firebase initialized:', firebaseInitialized);
+    } else {
+        console.warn('initializeFirebase function not found');
     }
 
     // If Firebase is available, check team's preferred mode
-    if (firebaseInitialized && typeof getTeamStorageMode === 'function') {
-        try {
-            const teamMode = await getTeamStorageMode();
-            if (teamMode) {
-                console.log('Team storage mode from Firebase:', teamMode);
-                currentStorageMode = teamMode;
-                // Save to localStorage as cache
-                localStorage.setItem(STORAGE_MODE_KEY, teamMode);
-            } else {
-                // No team mode set yet, check localStorage
+    if (firebaseInitialized) {
+        console.log('Checking for getTeamStorageMode function:', typeof getTeamStorageMode);
+
+        if (typeof getTeamStorageMode === 'function') {
+            try {
+                console.log('📡 Fetching team storage mode from Firebase...');
+                const teamMode = await getTeamStorageMode();
+                console.log('Team mode received:', teamMode);
+
+                if (teamMode) {
+                    console.log('✅ Using team storage mode from Firebase:', teamMode);
+                    currentStorageMode = teamMode;
+                    // Save to localStorage as cache
+                    localStorage.setItem(STORAGE_MODE_KEY, teamMode);
+                } else {
+                    console.log('⚠️ No team mode set in Firebase, checking localStorage');
+                    // No team mode set yet, check localStorage
+                    const savedMode = localStorage.getItem(STORAGE_MODE_KEY);
+                    if (savedMode && STORAGE_MODES[savedMode.toUpperCase()]) {
+                        currentStorageMode = savedMode;
+                        console.log('Using localStorage mode:', savedMode);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error loading team mode, using local preference:', error);
+                // Fallback to localStorage preference
                 const savedMode = localStorage.getItem(STORAGE_MODE_KEY);
                 if (savedMode && STORAGE_MODES[savedMode.toUpperCase()]) {
                     currentStorageMode = savedMode;
+                    console.log('Fallback to localStorage mode:', savedMode);
                 }
             }
-        } catch (error) {
-            console.error('Error loading team mode, using local preference:', error);
-            // Fallback to localStorage preference
+        } else {
+            console.warn('⚠️ getTeamStorageMode function not available');
+            // Fallback to localStorage
             const savedMode = localStorage.getItem(STORAGE_MODE_KEY);
             if (savedMode && STORAGE_MODES[savedMode.toUpperCase()]) {
                 currentStorageMode = savedMode;
+                console.log('Using localStorage mode (getTeamStorageMode missing):', savedMode);
             }
         }
     } else {
+        console.log('Firebase not initialized, using localStorage preference');
         // Firebase not available, use localStorage preference
         const savedMode = localStorage.getItem(STORAGE_MODE_KEY);
         if (savedMode && STORAGE_MODES[savedMode.toUpperCase()]) {
             currentStorageMode = savedMode;
+            console.log('Using localStorage mode:', savedMode);
         }
     }
 
     // Validate current mode
     if (currentStorageMode === STORAGE_MODES.FIREBASE && !firebaseInitialized) {
-        console.warn('Firebase not available, falling back to localStorage');
+        console.warn('⚠️ Firebase not available, falling back to localStorage');
         currentStorageMode = STORAGE_MODES.LOCAL;
     }
+
+    console.log('📌 Final storage mode:', currentStorageMode);
 
     await loadReservations();
     await loadAuditLogData();
