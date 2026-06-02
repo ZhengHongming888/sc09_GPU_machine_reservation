@@ -23,19 +23,47 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Initialize application
 async function initializeApp() {
-    // Load storage mode preference
-    const savedMode = localStorage.getItem(STORAGE_MODE_KEY);
-    if (savedMode && STORAGE_MODES[savedMode.toUpperCase()]) {
-        currentStorageMode = savedMode;
-    }
-
-    // Try to initialize Firebase
+    // Try to initialize Firebase first
     if (typeof initializeFirebase === 'function') {
         firebaseInitialized = await initializeFirebase();
-        if (!firebaseInitialized && currentStorageMode === STORAGE_MODES.FIREBASE) {
-            console.warn('Firebase not available, falling back to localStorage');
-            currentStorageMode = STORAGE_MODES.LOCAL;
+    }
+
+    // If Firebase is available, check team's preferred mode
+    if (firebaseInitialized && typeof getTeamStorageMode === 'function') {
+        try {
+            const teamMode = await getTeamStorageMode();
+            if (teamMode) {
+                console.log('Team storage mode from Firebase:', teamMode);
+                currentStorageMode = teamMode;
+                // Save to localStorage as cache
+                localStorage.setItem(STORAGE_MODE_KEY, teamMode);
+            } else {
+                // No team mode set yet, check localStorage
+                const savedMode = localStorage.getItem(STORAGE_MODE_KEY);
+                if (savedMode && STORAGE_MODES[savedMode.toUpperCase()]) {
+                    currentStorageMode = savedMode;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading team mode, using local preference:', error);
+            // Fallback to localStorage preference
+            const savedMode = localStorage.getItem(STORAGE_MODE_KEY);
+            if (savedMode && STORAGE_MODES[savedMode.toUpperCase()]) {
+                currentStorageMode = savedMode;
+            }
         }
+    } else {
+        // Firebase not available, use localStorage preference
+        const savedMode = localStorage.getItem(STORAGE_MODE_KEY);
+        if (savedMode && STORAGE_MODES[savedMode.toUpperCase()]) {
+            currentStorageMode = savedMode;
+        }
+    }
+
+    // Validate current mode
+    if (currentStorageMode === STORAGE_MODES.FIREBASE && !firebaseInitialized) {
+        console.warn('Firebase not available, falling back to localStorage');
+        currentStorageMode = STORAGE_MODES.LOCAL;
     }
 
     await loadReservations();
@@ -391,6 +419,11 @@ async function toggleStorageMode() {
                 currentStorageMode = STORAGE_MODES.FIREBASE;
                 localStorage.setItem(STORAGE_MODE_KEY, currentStorageMode);
 
+                // Save team preference to Firebase
+                if (typeof setTeamStorageMode === 'function') {
+                    await setTeamStorageMode(currentStorageMode);
+                }
+
                 // Subscribe to real-time updates
                 subscribeToFirebaseUpdates(async () => {
                     await loadReservations();
@@ -399,7 +432,7 @@ async function toggleStorageMode() {
                 });
 
                 updateModeUI();
-                alert('✅ Switched to Firebase mode successfully!\n\nData is now synced in real-time across all users.');
+                alert('✅ Switched to Firebase mode successfully!\n\nData is now synced in real-time across all users.\n\nAll team members will now use Firebase mode by default.');
             } catch (error) {
                 alert('Failed to switch to Firebase mode: ' + error.message);
             }
@@ -431,9 +464,14 @@ async function toggleStorageMode() {
                 currentStorageMode = STORAGE_MODES.LOCAL;
                 localStorage.setItem(STORAGE_MODE_KEY, currentStorageMode);
 
+                // Save team preference to Firebase
+                if (typeof setTeamStorageMode === 'function') {
+                    await setTeamStorageMode(currentStorageMode);
+                }
+
                 updateModeUI();
                 renderGrid();
-                alert('✅ Switched to Local mode successfully!\n\nData is now stored in your browser.');
+                alert('✅ Switched to Local mode successfully!\n\nData is now stored in your browser.\n\nAll team members will now use Local mode by default.');
             } catch (error) {
                 alert('Failed to switch to Local mode: ' + error.message);
             }

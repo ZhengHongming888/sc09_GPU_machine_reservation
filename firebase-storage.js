@@ -24,6 +24,35 @@ async function initializeFirebase() {
     }
 }
 
+// Get the team's preferred storage mode from Firebase
+async function getTeamStorageMode() {
+    try {
+        const doc = await db.collection('settings').doc('storage_mode').get();
+        if (doc.exists) {
+            return doc.data().mode;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error getting team storage mode:', error);
+        return null;
+    }
+}
+
+// Set the team's preferred storage mode in Firebase
+async function setTeamStorageMode(mode) {
+    try {
+        await db.collection('settings').doc('storage_mode').set({
+            mode: mode,
+            updated_at: firebase.firestore.FieldValue.serverTimestamp(),
+            updated_by: 'system'
+        });
+        console.log('Team storage mode set to:', mode);
+    } catch (error) {
+        console.error('Error setting team storage mode:', error);
+        throw error;
+    }
+}
+
 // Load reservations from Firestore
 async function loadFromFirebase() {
     try {
