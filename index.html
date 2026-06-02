@@ -11,6 +11,13 @@
         <header>
             <h1>SC09 Machine Reservation System</h1>
             <div class="controls">
+                <div class="storage-mode">
+                    <span class="mode-label">Mode:</span>
+                    <button id="modeToggleBtn" class="btn btn-mode">
+                        <span id="modeIcon">💾</span>
+                        <span id="modeText">Local</span>
+                    </button>
+                </div>
                 <button id="auditLogBtn" class="btn btn-info">📋 Audit Log</button>
                 <button id="exportBtn" class="btn btn-secondary">📥 Export</button>
                 <button id="importBtn" class="btn btn-secondary">📤 Import</button>
@@ -42,6 +49,13 @@
     <!-- Hidden file input for import -->
     <input type="file" id="fileInput" accept=".json" style="display: none;">
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Application Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-storage.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

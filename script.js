@@ -1,28 +1,77 @@
-// Storage key for localStorage
+// Storage keys for localStorage
 const STORAGE_KEY = 'sc09_reservations';
 const AUDIT_LOG_KEY = 'sc09_audit_log';
+const STORAGE_MODE_KEY = 'sc09_storage_mode';
+
+// Storage modes
+const STORAGE_MODES = {
+    LOCAL: 'local',
+    FIREBASE: 'firebase'
+};
 
 // Global state
 let reservationsData = null;
 let auditLog = [];
+let currentStorageMode = STORAGE_MODES.LOCAL;
+let firebaseInitialized = false;
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', () => {
-    initializeApp();
+document.addEventListener('DOMContentLoaded', async () => {
+    await initializeApp();
     setupEventListeners();
 });
 
 // Initialize application
 async function initializeApp() {
+    // Load storage mode preference
+    const savedMode = localStorage.getItem(STORAGE_MODE_KEY);
+    if (savedMode && STORAGE_MODES[savedMode.toUpperCase()]) {
+        currentStorageMode = savedMode;
+    }
+
+    // Try to initialize Firebase
+    if (typeof initializeFirebase === 'function') {
+        firebaseInitialized = await initializeFirebase();
+        if (!firebaseInitialized && currentStorageMode === STORAGE_MODES.FIREBASE) {
+            console.warn('Firebase not available, falling back to localStorage');
+            currentStorageMode = STORAGE_MODES.LOCAL;
+        }
+    }
+
     await loadReservations();
-    loadAuditLog();
+    await loadAuditLogData();
+    updateModeUI();
     renderGrid();
     updateLastUpdated();
+
+    // Subscribe to real-time updates if in Firebase mode
+    if (currentStorageMode === STORAGE_MODES.FIREBASE && firebaseInitialized) {
+        subscribeToFirebaseUpdates(async () => {
+            await loadReservations();
+            renderGrid();
+            updateLastUpdated();
+        });
+    }
 }
 
-// Load reservations from localStorage or fetch from JSON file
+// Load reservations based on current mode
 async function loadReservations() {
-    // Try to load from localStorage first
+    if (currentStorageMode === STORAGE_MODES.FIREBASE && firebaseInitialized) {
+        try {
+            reservationsData = await loadFromFirebase();
+            console.log('Loaded reservations from Firebase');
+        } catch (error) {
+            console.error('Failed to load from Firebase, falling back to localStorage:', error);
+            currentStorageMode = STORAGE_MODES.LOCAL;
+            await loadReservationsFromLocalStorage();
+        }
+    } else {
+        await loadReservationsFromLocalStorage();
+    }
+}
+
+// Load reservations from localStorage or JSON file
+async function loadReservationsFromLocalStorage() {
     const stored = localStorage.getItem(STORAGE_KEY);
 
     if (stored) {
@@ -42,20 +91,42 @@ async function loadReservations() {
     }
 }
 
-// Save current state to localStorage
-function saveToStorage() {
+// Save current state based on mode
+async function saveToStorage() {
     reservationsData.last_updated = new Date().toISOString();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(reservationsData));
+
+    if (currentStorageMode === STORAGE_MODES.FIREBASE && firebaseInitialized) {
+        // Firebase saves happen in individual operations, just update timestamp
+        console.log('Data saved via Firebase');
+    } else {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reservationsData));
+        console.log('Saved to localStorage');
+    }
+
     updateLastUpdated();
-    console.log('Saved to localStorage');
+}
+
+// Load audit log data
+async function loadAuditLogData() {
+    if (currentStorageMode === STORAGE_MODES.FIREBASE && firebaseInitialized) {
+        try {
+            auditLog = await loadAuditLogFromFirebase();
+            console.log('Loaded audit log from Firebase:', auditLog.length, 'entries');
+        } catch (error) {
+            console.error('Failed to load audit log from Firebase:', error);
+            loadAuditLogFromLocalStorage();
+        }
+    } else {
+        loadAuditLogFromLocalStorage();
+    }
 }
 
 // Load audit log from localStorage
-function loadAuditLog() {
+function loadAuditLogFromLocalStorage() {
     const stored = localStorage.getItem(AUDIT_LOG_KEY);
     if (stored) {
         auditLog = JSON.parse(stored);
-        console.log('Loaded audit log:', auditLog.length, 'entries');
+        console.log('Loaded audit log from localStorage:', auditLog.length, 'entries');
     } else {
         auditLog = [];
     }
@@ -63,11 +134,13 @@ function loadAuditLog() {
 
 // Save audit log to localStorage
 function saveAuditLog() {
-    localStorage.setItem(AUDIT_LOG_KEY, JSON.stringify(auditLog));
+    if (currentStorageMode === STORAGE_MODES.LOCAL) {
+        localStorage.setItem(AUDIT_LOG_KEY, JSON.stringify(auditLog));
+    }
 }
 
 // Add entry to audit log
-function addAuditEntry(action, machine, card, originalOwner, actionBy) {
+async function addAuditEntry(action, machine, card, originalOwner, actionBy) {
     const entry = {
         timestamp: new Date().toISOString(),
         action: action,
@@ -76,6 +149,15 @@ function addAuditEntry(action, machine, card, originalOwner, actionBy) {
         original_owner: originalOwner,
         action_by: actionBy
     };
+
+    if (currentStorageMode === STORAGE_MODES.FIREBASE && firebaseInitialized) {
+        try {
+            await addAuditEntryToFirebase(action, machine, card, originalOwner, actionBy);
+        } catch (error) {
+            console.error('Failed to save audit entry to Firebase:', error);
+        }
+    }
+
     auditLog.push(entry);
     saveAuditLog();
     console.log('Audit log entry added:', entry);
@@ -176,16 +258,14 @@ function createCardCell(machine, card) {
 // Handle card click
 function handleCardClick(machine, card) {
     if (card.reserved_by) {
-        // Card is reserved - show options to release
         handleReservedCardClick(machine, card);
     } else {
-        // Card is available - reserve it
         handleAvailableCardClick(machine, card);
     }
 }
 
 // Handle click on available card
-function handleAvailableCardClick(machine, card) {
+async function handleAvailableCardClick(machine, card) {
     const surname = prompt('Enter your surname to reserve this card:');
 
     if (surname && surname.trim()) {
@@ -194,11 +274,21 @@ function handleAvailableCardClick(machine, card) {
         const cardData = machineData.cards.find(c => c.id === card.id);
         cardData.reserved_by = surname.trim();
 
+        // Save based on mode
+        if (currentStorageMode === STORAGE_MODES.FIREBASE && firebaseInitialized) {
+            try {
+                await saveReservationToFirebase(machine.name, card.id, surname.trim());
+            } catch (error) {
+                alert('Failed to save reservation to Firebase: ' + error.message);
+                return;
+            }
+        }
+
         // Add audit log entry
-        addAuditEntry('reserve', machine.name, card.name, null, surname.trim());
+        await addAuditEntry('reserve', machine.name, card.name, null, surname.trim());
 
         // Save and re-render
-        saveToStorage();
+        await saveToStorage();
         renderGrid();
 
         showNotification(`Reserved ${card.name} on ${machine.name} for ${surname.trim()}`);
@@ -206,10 +296,9 @@ function handleAvailableCardClick(machine, card) {
 }
 
 // Handle click on reserved card
-function handleReservedCardClick(machine, card) {
+async function handleReservedCardClick(machine, card) {
     const originalOwner = card.reserved_by;
 
-    // Ask for confirmation with name input
     const releasedBy = prompt(
         `${card.name} on ${machine.name} is reserved by: ${originalOwner}\n\n` +
         `To release this reservation, please enter YOUR surname:`
@@ -221,11 +310,21 @@ function handleReservedCardClick(machine, card) {
         const cardData = machineData.cards.find(c => c.id === card.id);
         cardData.reserved_by = null;
 
-        // Add audit log entry (especially important if different person releases)
-        addAuditEntry('release', machine.name, card.name, originalOwner, releasedBy.trim());
+        // Save based on mode
+        if (currentStorageMode === STORAGE_MODES.FIREBASE && firebaseInitialized) {
+            try {
+                await releaseReservationInFirebase(machine.name, card.id);
+            } catch (error) {
+                alert('Failed to release reservation in Firebase: ' + error.message);
+                return;
+            }
+        }
+
+        // Add audit log entry
+        await addAuditEntry('release', machine.name, card.name, originalOwner, releasedBy.trim());
 
         // Save and re-render
-        saveToStorage();
+        await saveToStorage();
         renderGrid();
 
         if (originalOwner.toLowerCase() === releasedBy.trim().toLowerCase()) {
@@ -248,12 +347,105 @@ function updateLastUpdated() {
 
 // Show notification
 function showNotification(message) {
-    // Simple alert for now (can be enhanced with custom toast notifications)
     console.log('Notification:', message);
+}
+
+// Update mode UI
+function updateModeUI() {
+    const modeToggleBtn = document.getElementById('modeToggleBtn');
+    const modeIcon = document.getElementById('modeIcon');
+    const modeText = document.getElementById('modeText');
+
+    if (currentStorageMode === STORAGE_MODES.FIREBASE) {
+        modeToggleBtn.classList.add('firebase-mode');
+        modeIcon.textContent = '☁️';
+        modeText.textContent = 'Firebase';
+    } else {
+        modeToggleBtn.classList.remove('firebase-mode');
+        modeIcon.textContent = '💾';
+        modeText.textContent = 'Local';
+    }
+}
+
+// Toggle storage mode
+async function toggleStorageMode() {
+    if (currentStorageMode === STORAGE_MODES.LOCAL) {
+        // Switch to Firebase
+        if (!firebaseInitialized) {
+            alert('Firebase is not configured. Please add your Firebase credentials in firebase-config.js');
+            return;
+        }
+
+        const confirm = window.confirm(
+            'Switch to Firebase mode?\n\n' +
+            'This will:\n' +
+            '- Enable real-time sync across all users\n' +
+            '- Store data in Firebase Cloud\n' +
+            '- Migrate your current data to Firebase\n\n' +
+            'Continue?'
+        );
+
+        if (confirm) {
+            try {
+                await migrateToFirebase(reservationsData, auditLog);
+                currentStorageMode = STORAGE_MODES.FIREBASE;
+                localStorage.setItem(STORAGE_MODE_KEY, currentStorageMode);
+
+                // Subscribe to real-time updates
+                subscribeToFirebaseUpdates(async () => {
+                    await loadReservations();
+                    renderGrid();
+                    updateLastUpdated();
+                });
+
+                updateModeUI();
+                alert('✅ Switched to Firebase mode successfully!\n\nData is now synced in real-time across all users.');
+            } catch (error) {
+                alert('Failed to switch to Firebase mode: ' + error.message);
+            }
+        }
+    } else {
+        // Switch to Local
+        const confirm = window.confirm(
+            'Switch to Local mode?\n\n' +
+            'This will:\n' +
+            '- Use your browser\'s localStorage\n' +
+            '- No real-time sync (each user has their own data)\n' +
+            '- Download current Firebase data to local storage\n\n' +
+            'Continue?'
+        );
+
+        if (confirm) {
+            try {
+                const { reservationsData: fbData, auditLog: fbAuditLog } = await migrateFromFirebase();
+
+                // Save to localStorage
+                reservationsData = fbData;
+                auditLog = fbAuditLog;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(reservationsData));
+                localStorage.setItem(AUDIT_LOG_KEY, JSON.stringify(auditLog));
+
+                // Unsubscribe from Firebase
+                unsubscribeFromFirebase();
+
+                currentStorageMode = STORAGE_MODES.LOCAL;
+                localStorage.setItem(STORAGE_MODE_KEY, currentStorageMode);
+
+                updateModeUI();
+                renderGrid();
+                alert('✅ Switched to Local mode successfully!\n\nData is now stored in your browser.');
+            } catch (error) {
+                alert('Failed to switch to Local mode: ' + error.message);
+            }
+        }
+    }
 }
 
 // Setup event listeners for buttons
 function setupEventListeners() {
+    // Mode toggle button
+    document.getElementById('modeToggleBtn').addEventListener('click', toggleStorageMode);
+
     // Audit log button
     document.getElementById('auditLogBtn').addEventListener('click', showAuditLog);
 
@@ -272,7 +464,9 @@ function setupEventListeners() {
     document.getElementById('resetBtn').addEventListener('click', resetData);
 
     // Refresh button
-    document.getElementById('refreshBtn').addEventListener('click', () => {
+    document.getElementById('refreshBtn').addEventListener('click', async () => {
+        await loadReservations();
+        await loadAuditLogData();
         renderGrid();
         updateLastUpdated();
         showNotification('Grid refreshed');
@@ -286,16 +480,15 @@ function showAuditLog() {
         return;
     }
 
-    // Sort by timestamp descending (most recent first)
     const sortedLog = [...auditLog].sort((a, b) =>
         new Date(b.timestamp) - new Date(a.timestamp)
     );
 
-    // Format the log entries
     let logText = '=== AUDIT LOG ===\n';
-    logText += `Total entries: ${sortedLog.length}\n\n`;
+    logText += `Total entries: ${sortedLog.length}\n`;
+    logText += `Storage Mode: ${currentStorageMode.toUpperCase()}\n\n`;
 
-    sortedLog.forEach((entry, index) => {
+    sortedLog.slice(0, 50).forEach((entry, index) => {
         const date = new Date(entry.timestamp);
         const timeStr = date.toLocaleString();
 
@@ -314,44 +507,11 @@ function showAuditLog() {
         }
     });
 
-    // Show in alert (or could create a modal)
-    alert(logText);
-}
-
-// Export audit log as text file
-function exportAuditLog() {
-    if (auditLog.length === 0) {
-        alert('No audit log entries to export.');
-        return;
+    if (sortedLog.length > 50) {
+        logText += `\n... and ${sortedLog.length - 50} more entries`;
     }
 
-    const sortedLog = [...auditLog].sort((a, b) =>
-        new Date(b.timestamp) - new Date(a.timestamp)
-    );
-
-    let logText = 'SC09 GPU Machine Reservation - Audit Log\n';
-    logText += '==========================================\n\n';
-
-    sortedLog.forEach((entry, index) => {
-        const date = new Date(entry.timestamp);
-        logText += `[${index + 1}] ${date.toLocaleString()}\n`;
-        logText += `Action: ${entry.action.toUpperCase()}\n`;
-        logText += `Machine: ${entry.machine}\n`;
-        logText += `Card: ${entry.card}\n`;
-        if (entry.original_owner) {
-            logText += `Original Owner: ${entry.original_owner}\n`;
-        }
-        logText += `Action By: ${entry.action_by}\n`;
-        logText += '\n';
-    });
-
-    const blob = new Blob([logText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `sc09_audit_log_${new Date().toISOString().split('T')[0]}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
+    alert(logText);
 }
 
 // Export current data as JSON file
@@ -362,7 +522,7 @@ function exportData() {
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `sc09_reservations_${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `sc09_reservations_${currentStorageMode}_${new Date().toISOString().split('T')[0]}.json`;
     link.click();
 
     URL.revokeObjectURL(url);
@@ -375,18 +535,16 @@ function handleFileImport(event) {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
         try {
             const imported = JSON.parse(e.target.result);
 
-            // Validate the structure
             if (!imported.machines || !Array.isArray(imported.machines)) {
                 throw new Error('Invalid data structure');
             }
 
-            // Update data
             reservationsData = imported;
-            saveToStorage();
+            await saveToStorage();
             renderGrid();
 
             alert('Data imported successfully!');
@@ -396,7 +554,6 @@ function handleFileImport(event) {
     };
     reader.readAsText(file);
 
-    // Reset file input
     event.target.value = '';
 }
 
@@ -407,15 +564,26 @@ async function resetData() {
     }
 
     try {
-        // Clear localStorage
-        localStorage.removeItem(STORAGE_KEY);
+        if (currentStorageMode === STORAGE_MODES.FIREBASE && firebaseInitialized) {
+            // Load from JSON and migrate to Firebase
+            const response = await fetch('reservations.json');
+            const originalData = await response.json();
+            await migrateToFirebase(originalData, []);
+            await loadReservations();
+        } else {
+            // Clear localStorage and reload from JSON
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(AUDIT_LOG_KEY);
 
-        // Reload from JSON
-        const response = await fetch('reservations.json');
-        reservationsData = await response.json();
-        saveToStorage();
+            const response = await fetch('reservations.json');
+            reservationsData = await response.json();
+            auditLog = [];
+
+            await saveToStorage();
+            saveAuditLog();
+        }
+
         renderGrid();
-
         alert('Reservations have been reset to the original state.');
     } catch (error) {
         alert('Error resetting data: ' + error.message);

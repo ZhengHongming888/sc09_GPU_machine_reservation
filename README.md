@@ -8,13 +8,15 @@ Visit: **https://zhenghongming888.github.io/sc09_GPU_machine_reservation/**
 
 ## 📋 Features
 
-- **Visual Grid Layout**: Easy-to-read table showing all machines and their GPU cards
-- **One-Click Reservations**: Click an available card to reserve it with your surname
-- **Easy Release**: Click a reserved card to view details and release the reservation
-- **Local Storage**: All changes are saved automatically in your browser
-- **Export/Import**: Share reservation states between users using JSON files
-- **Reset**: Return to the original reservation state at any time
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **🔄 Dual Storage Modes**: Switch between Local (browser) and Firebase (cloud) storage
+- **☁️ Real-time Sync**: Firebase mode enables instant updates across all users
+- **📋 Audit Log**: Track all reservations/releases with full accountability
+- **🎯 Visual Grid Layout**: Easy-to-read table showing all machines and their GPU cards
+- **✅ One-Click Reservations**: Click an available card to reserve it with your surname
+- **🔓 Easy Release**: Click a reserved card to view details and release the reservation
+- **📥 Export/Import**: Share reservation states between users using JSON files
+- **🔄 Reset**: Return to the original reservation state at any time
+- **📱 Responsive Design**: Works on desktop, tablet, and mobile devices
 
 ## 🚀 How to Use
 
@@ -76,8 +78,23 @@ sc09_GPU_machine_reservation/
 
 ### Technology Stack
 - **Frontend**: Pure HTML5, CSS3, JavaScript (ES6+)
-- **Storage**: Browser localStorage
+- **Storage**: Dual-mode - localStorage OR Firebase Firestore
+- **Real-time Sync**: Firebase SDK (optional)
 - **Hosting**: GitHub Pages
+
+### Storage Modes
+
+**Local Mode (💾 Local)**
+- Data stored in browser's localStorage
+- Works offline
+- Each user has independent data
+- Fast, no network latency
+
+**Firebase Mode (☁️ Firebase)**
+- Data stored in Firebase Cloud
+- Real-time sync across all users
+- Scalable audit log (no size limits)
+- Requires Firebase setup (see FIREBASE_SETUP.md)
 
 ### Data Format
 
