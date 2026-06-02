@@ -268,12 +268,18 @@ async function migrateToFirebase(reservationsData, auditLog) {
         // Migrate audit log (latest 500 entries to avoid quota issues)
         const recentAuditLog = auditLog.slice(0, 500);
         for (const entry of recentAuditLog) {
+            // Skip entries with missing required fields
+            if (!entry.action || !entry.machine || !entry.card || !entry.action_by) {
+                console.warn('Skipping audit entry with missing fields:', entry);
+                continue;
+            }
+
             await db.collection('audit_log').add({
                 timestamp: firebase.firestore.Timestamp.fromDate(new Date(entry.timestamp)),
                 action: entry.action,
                 machine: entry.machine,
                 card: entry.card,
-                original_owner: entry.original_owner,
+                original_owner: entry.original_owner || null,
                 action_by: entry.action_by
             });
         }
