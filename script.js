@@ -1,8 +1,10 @@
 // Storage key for localStorage
 const STORAGE_KEY = 'sc09_reservations';
+const AUDIT_LOG_KEY = 'sc09_audit_log';
 
 // Global state
 let reservationsData = null;
+let auditLog = [];
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Initialize application
 async function initializeApp() {
     await loadReservations();
+    loadAuditLog();
     renderGrid();
     updateLastUpdated();
 }
@@ -45,6 +48,37 @@ function saveToStorage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(reservationsData));
     updateLastUpdated();
     console.log('Saved to localStorage');
+}
+
+// Load audit log from localStorage
+function loadAuditLog() {
+    const stored = localStorage.getItem(AUDIT_LOG_KEY);
+    if (stored) {
+        auditLog = JSON.parse(stored);
+        console.log('Loaded audit log:', auditLog.length, 'entries');
+    } else {
+        auditLog = [];
+    }
+}
+
+// Save audit log to localStorage
+function saveAuditLog() {
+    localStorage.setItem(AUDIT_LOG_KEY, JSON.stringify(auditLog));
+}
+
+// Add entry to audit log
+function addAuditEntry(action, machine, card, originalOwner, actionBy) {
+    const entry = {
+        timestamp: new Date().toISOString(),
+        action: action,
+        machine: machine,
+        card: card,
+        original_owner: originalOwner,
+        action_by: actionBy
+    };
+    auditLog.push(entry);
+    saveAuditLog();
+    console.log('Audit log entry added:', entry);
 }
 
 // Render the entire grid
@@ -160,6 +194,9 @@ function handleAvailableCardClick(machine, card) {
         const cardData = machineData.cards.find(c => c.id === card.id);
         cardData.reserved_by = surname.trim();
 
+        // Add audit log entry
+        addAuditEntry('reserve', machine.name, card.name, null, surname.trim());
+
         // Save and re-render
         saveToStorage();
         renderGrid();
@@ -170,19 +207,34 @@ function handleAvailableCardClick(machine, card) {
 
 // Handle click on reserved card
 function handleReservedCardClick(machine, card) {
-    const message = `${card.name} on ${machine.name} is reserved by: ${card.reserved_by}\n\nDo you want to release this reservation?`;
+    const originalOwner = card.reserved_by;
 
-    if (confirm(message)) {
+    // Ask for confirmation with name input
+    const releasedBy = prompt(
+        `${card.name} on ${machine.name} is reserved by: ${originalOwner}\n\n` +
+        `To release this reservation, please enter YOUR surname:`
+    );
+
+    if (releasedBy && releasedBy.trim()) {
         // Update the data
         const machineData = reservationsData.machines.find(m => m.name === machine.name);
         const cardData = machineData.cards.find(c => c.id === card.id);
         cardData.reserved_by = null;
 
+        // Add audit log entry (especially important if different person releases)
+        addAuditEntry('release', machine.name, card.name, originalOwner, releasedBy.trim());
+
         // Save and re-render
         saveToStorage();
         renderGrid();
 
-        showNotification(`Released ${card.name} on ${machine.name}`);
+        if (originalOwner.toLowerCase() === releasedBy.trim().toLowerCase()) {
+            showNotification(`${releasedBy.trim()} released their own reservation: ${card.name} on ${machine.name}`);
+        } else {
+            showNotification(
+                `⚠️ ${releasedBy.trim()} released ${originalOwner}'s reservation: ${card.name} on ${machine.name}`
+            );
+        }
     }
 }
 
@@ -202,6 +254,9 @@ function showNotification(message) {
 
 // Setup event listeners for buttons
 function setupEventListeners() {
+    // Audit log button
+    document.getElementById('auditLogBtn').addEventListener('click', showAuditLog);
+
     // Export button
     document.getElementById('exportBtn').addEventListener('click', exportData);
 
@@ -222,6 +277,81 @@ function setupEventListeners() {
         updateLastUpdated();
         showNotification('Grid refreshed');
     });
+}
+
+// Show audit log
+function showAuditLog() {
+    if (auditLog.length === 0) {
+        alert('No audit log entries yet.');
+        return;
+    }
+
+    // Sort by timestamp descending (most recent first)
+    const sortedLog = [...auditLog].sort((a, b) =>
+        new Date(b.timestamp) - new Date(a.timestamp)
+    );
+
+    // Format the log entries
+    let logText = '=== AUDIT LOG ===\n';
+    logText += `Total entries: ${sortedLog.length}\n\n`;
+
+    sortedLog.forEach((entry, index) => {
+        const date = new Date(entry.timestamp);
+        const timeStr = date.toLocaleString();
+
+        if (entry.action === 'reserve') {
+            logText += `[${index + 1}] ${timeStr}\n`;
+            logText += `  ✅ RESERVE: ${entry.action_by} reserved ${entry.card} on ${entry.machine}\n\n`;
+        } else if (entry.action === 'release') {
+            const isSelf = entry.original_owner.toLowerCase() === entry.action_by.toLowerCase();
+            if (isSelf) {
+                logText += `[${index + 1}] ${timeStr}\n`;
+                logText += `  ✓ RELEASE: ${entry.action_by} released their own ${entry.card} on ${entry.machine}\n\n`;
+            } else {
+                logText += `[${index + 1}] ${timeStr}\n`;
+                logText += `  ⚠️ RELEASE: ${entry.action_by} released ${entry.original_owner}'s ${entry.card} on ${entry.machine}\n\n`;
+            }
+        }
+    });
+
+    // Show in alert (or could create a modal)
+    alert(logText);
+}
+
+// Export audit log as text file
+function exportAuditLog() {
+    if (auditLog.length === 0) {
+        alert('No audit log entries to export.');
+        return;
+    }
+
+    const sortedLog = [...auditLog].sort((a, b) =>
+        new Date(b.timestamp) - new Date(a.timestamp)
+    );
+
+    let logText = 'SC09 GPU Machine Reservation - Audit Log\n';
+    logText += '==========================================\n\n';
+
+    sortedLog.forEach((entry, index) => {
+        const date = new Date(entry.timestamp);
+        logText += `[${index + 1}] ${date.toLocaleString()}\n`;
+        logText += `Action: ${entry.action.toUpperCase()}\n`;
+        logText += `Machine: ${entry.machine}\n`;
+        logText += `Card: ${entry.card}\n`;
+        if (entry.original_owner) {
+            logText += `Original Owner: ${entry.original_owner}\n`;
+        }
+        logText += `Action By: ${entry.action_by}\n`;
+        logText += '\n';
+    });
+
+    const blob = new Blob([logText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `sc09_audit_log_${new Date().toISOString().split('T')[0]}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
 }
 
 // Export current data as JSON file
